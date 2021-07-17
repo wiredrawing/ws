@@ -1,0 +1,99 @@
+<html>
+
+  <head>
+
+    <meta charset="UTF-8">
+
+    <title>JavaScriptでソケット通信（WebSocket）する方法</title>
+
+  </head>
+
+  <body>
+
+    <h1>JavaScriptでWebSocket</h1>
+
+    <label>WebSocket通信を【wss://echo.websocket.org】と行います。</label><br>
+
+    <input type="button" value="コネクション開始" onclick="open_cnn()"><br>
+
+    <br>
+
+    <input type="text" id="SndMsg" placeholder="送信メッセージを入力"><br>
+
+    <input type="button" value="上記メッセージを送信" onclick="snd_msg()"><br>
+
+    <br>
+
+    <textarea id="RcvMsg" cols="40" rows="4" maxlength="20" placeholder="送信と同時に同じ内容が、受信メッセージとして反映されます。"></textarea><br>
+
+    <input type="button" value="コネクション終了" onclick="close_cnn()" /><br>
+
+    <div id="received-messages"></div>
+
+    <br>
+
+    <script type="text/javascript">
+
+
+      //コネクション開始ボタン
+      let socket = null
+      function open_cnn(){
+        socket = new WebSocket("ws:test.websocket:8080/aa/bb/cc/dd/?param=123456789");
+
+        console.log("コネクションを開始しします。");
+
+
+        //コネクションが接続された時の動き
+
+        socket.addEventListener("open", (e) => {
+          console.log("コネクション開始");
+          console.log(e);
+        });
+
+
+        //エラーが発生したされた時の動き
+
+        socket.addEventListener("error" , (e) => {
+          console.log("websocketでエラーが発生");
+          console.log(e);
+        });
+
+        //メッセージを受け取ったされた時の動き
+
+        socket.addEventListener("message", (e) => {
+          let receiveMessage = e.data;
+          console.log("websocketでメッセージを受信しました");
+          console.log(e.data);
+          document.getElementById("RcvMsg").value = e.data;
+          document.getElementById("received-messages").innerHTML = receiveMessage + "<br>" + document.getElementById("received-messages").innerHTML
+        });
+
+
+        //通信が切断された時の動き
+        socket.addEventListener("close", (e) => {
+          console.log("コネクション終了");
+        });
+
+      }
+
+      //メッセージ送信ボタン
+
+      function snd_msg(){
+
+        socket.send(document.getElementById("SndMsg").value);
+
+      }
+
+      //コネクション終了ボタン
+
+      function close_cnn(){
+
+        socket.close();
+
+      }
+
+    </script>
+
+  </body>
+
+</html>
