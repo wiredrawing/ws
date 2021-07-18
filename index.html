@@ -38,7 +38,7 @@
       //コネクション開始ボタン
       let socket = null
       function open_cnn(){
-        socket = new WebSocket("ws:test.websocket:8080/aa/bb/cc/dd/?param=123456789");
+        socket = new WebSocket("ws://localhost:8080");
 
         console.log("コネクションを開始しします。");
 
@@ -71,6 +71,7 @@
 
         //通信が切断された時の動き
         socket.addEventListener("close", (e) => {
+          console.log(e);
           console.log("コネクション終了");
         });
 

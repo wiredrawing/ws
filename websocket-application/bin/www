@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('websocket-application:server');
+var http = require('http');
+
+let redis = require("redis");
+
+try {
+  let redisPort = 6379;
+  let redisHost = "localhost";
+  let subscriber = redis.createClient(redisPort, redisHost);
+  let publisher = redis.createClient(redisPort, redisHost);
+} catch (error) {
+  console.log("redisサーバーに問題があります｡");
+  process.exit(-1);
+}
+
+
+let sio = require("socket.io");
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '8080');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
+
+
+let io = sio(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "HOST"],
+  }
+});
+
+io.on("connection", ( client ) => {
+
+
+  console.log(client.id);
+
+  client.on("message", ( message ) => {
+    console.log(message);
+    let res = "クライアントID: "+ client.id + "からメッセージを受信 => "+ message;
+    client.broadcast.emit("message", {message: res});
+  });
+
+
+  // クライアント側のsocketが切断された場合
+  // disconnectイベントが発生する
+  client.on("disconnect", (e) => {
+    console.log("クライアントID:" + client.id + "が切断されました｡");
+    console.log(e);
+  });
+
+  client.on("reconnect", (e) => {
+    console.log(client.id + "が再接続しました｡");
+  });
+
+});

@@ -9,6 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "node-uuid": "^1.4.8"
+    "express": "^4.17.1",
+    "express-generator": "^4.16.1",
+    "node-uuid": "^1.4.8",
+    "socket.io": "^4.1.3"
   }
 }

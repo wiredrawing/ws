@@ -1,0 +1,115 @@
+<html>
+
+  <head>
+
+    <meta charset="UTF-8">
+
+    <title>JavaScriptでソケット通信（WebSocket）する方法</title>
+    <script src="http://localhost:8080/socket.io/socket.io.js"></script>
+  </head>
+
+  <body>
+
+    <h1>JavaScriptでWebSocket</h1>
+
+    <label>WebSocket通信を【wss://echo.websocket.org】と行います。</label><br>
+
+    <input type="button" value="コネクション開始" onclick="open_cnn()"><br>
+
+    <br>
+
+    <input type="text" id="SndMsg" placeholder="送信メッセージを入力"><br>
+
+    <input type="button" value="上記メッセージを送信" onclick="snd_msg()"><br>
+
+    <br>
+
+    <textarea id="RcvMsg" cols="40" rows="4" maxlength="20" placeholder="送信と同時に同じ内容が、受信メッセージとして反映されます。"></textarea><br>
+
+    <input type="button" value="コネクション終了" onclick="close_cnn()" /><br>
+
+    <div id="received-messages"></div>
+
+    <br>
+
+    <script type="text/javascript">
+
+
+      //コネクション開始ボタン
+      let socket = null
+      function open_cnn(){
+        if (socket !== null) {
+          return socket;
+        }
+        socket = io("http://localhost:8080/");
+
+        console.log(socket);
+
+        socket.on("connect_error", (error) => {
+          console.log(error)
+        });
+        socket.on("connect", (e) => {
+          console.log("WebSocketコネクションが開通しました ===>");
+          console.log(socket.connected);
+        });
+        socket.on("reconnect", (e) => {
+          console.log("WebSocketコネクションが再接続されました ==>");
+        });
+
+
+        //エラーが発生したされた時の動き
+
+        socket.addEventListener("error" , (e) => {
+          console.log("websocketでエラーが発生");
+          console.log(e);
+        });
+
+        // 接続がきれた場合
+        socket.on("disconnect", (e) => {
+          console.log("Happen an event named disconnect ===> ");
+          console.log("コネクションが切断されました｡");
+          console.log("切断原因 => " + e);
+        });
+        //メッセージを受け取ったされた時の動き
+
+        socket.on("message", (response) => {
+          let receiveMessage = response.message;
+          console.log("websocketでメッセージを受信しました");
+          document.getElementById("RcvMsg").value = receiveMessage;
+          document.getElementById("received-messages").innerHTML = receiveMessage + "<br>" + document.getElementById("received-messages").innerHTML
+        });
+        // socket.addEventListener("message", (response) => {
+        //   let receiveMessage = response.message;
+        //   console.log("websocketでメッセージを受信しました");
+        //   document.getElementById("RcvMsg").value = receiveMessage;
+        //   document.getElementById("received-messages").innerHTML = receiveMessage + "<br>" + document.getElementById("received-messages").innerHTML
+        // });
+
+      }
+
+      //メッセージ送信ボタン
+
+      function snd_msg(){
+        if (socket.connected) {
+          socket.emit("message", document.getElementById("SndMsg").value);
+        // socket.send(document.getElementById("SndMsg").value);
+        } else {
+          alert("Web socketに接続されていません");
+        }
+      }
+
+      //コネクション終了ボタン
+
+      function close_cnn(){
+        // socket.ioを使った場合でも,
+        // コネクションの削除は socket.close()となる
+        socket.close();
+        console.log(socket);
+        socket.open();
+      }
+
+    </script>
+
+  </body>
+
+</html>
